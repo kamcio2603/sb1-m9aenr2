@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator konfiguracji WireGuard dla MikroTik</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Generator konfiguracji WireGuard dla MikroTik</h1>
+        <form id="configForm">
+            <div class="form-group">
+                <label for="routerMasterName">Nazwa routera master (czyli klienta):</label>
+                <input type="text" id="routerMasterName" required>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterIP">Adres IP routera Master:</label>
+                <input type="text" id="routerMasterIP" required>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterFQDN">Adres FQDN routera Master:</label>
+                <input type="text" id="routerMasterFQDN" value="rt01.somii.pl" readonly>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterSubnet">Podsieć LAN routera Master:</label>
+                <input type="text" id="routerMasterSubnet" value="192.168.30.0/24" readonly>
+            </div>
+            <div class="form-group">
+                <label for="routerClientName">Nazwa routera Client:</label>
+                <input type="text" id="routerClientName" value="RT-01-HQ" readonly>
+            </div>
+            <div class="form-group">
+                <label for="routerClientIP">Adres IP routera Client:</label>
+                <input type="text" id="routerClientIP" required>
+            </div>
+            <div class="form-group">
+                <label for="clientLANSubnet">Podsieć LAN klienta:</label>
+                <input type="text" id="clientLANSubnet" placeholder="np. 192.168.1.0/24" required>
+            </div>
+            <div class="form-group">
+                <label for="listenPort">Port nasłuchiwania:</label>
+                <input type="number" id="listenPort" value="13231" required>
+            </div>
+            <div class="form-group">
+                <label for="keepalive">Keepalive (w sekundach):</label>
+                <input type="number" id="keepalive" value="25" required>
+            </div>
+            <button type="submit">Generuj konfigurację</button>
+        </form>
+        <div id="output" class="hidden">
+            <h2>Konfiguracja dla routera Master:</h2>
+            <pre id="configMaster"></pre>
+            <h2>Konfiguracja dla routera Client:</h2>
+            <pre id="configClient"></pre>
+        </div>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

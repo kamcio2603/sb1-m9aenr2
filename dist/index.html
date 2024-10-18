@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator konfiguracji WireGuard dla MikroTik</title>
+    
+  <link rel="stylesheet" href="/assets/index-5a81676b.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Generator konfiguracji WireGuard dla MikroTik</h1>
+        <form id="configForm">
+            <div class="form-group">
+                <label for="routerMasterName">Nazwa routera Master:</label>
+                <input type="text" id="routerMasterName" required>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterPublicKey">Klucz publiczny routera Master:</label>
+                <input type="text" id="routerMasterPublicKey" required>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterPrivateKey">Klucz prywatny routera Master:</label>
+                <input type="text" id="routerMasterPrivateKey" required>
+            </div>
+            <div class="form-group">
+                <label for="routerMasterIP">Adres IP routera Master:</label>
+                <input type="text" id="routerMasterIP" required>
+            </div>
+            <div class="form-group">
+                <label for="routerClientName">Nazwa routera Client:</label>
+                <input type="text" id="routerClientName" required>
+            </div>
+            <div class="form-group">
+                <label for="routerClientPublicKey">Klucz publiczny routera Client:</label>
+                <input type="text" id="routerClientPublicKey" required>
+            </div>
+            <div class="form-group">
+                <label for="routerClientPrivateKey">Klucz prywatny routera Client:</label>
+                <input type="text" id="routerClientPrivateKey" required>
+            </div>
+            <div class="form-group">
+                <label for="routerClientIP">Adres IP routera Client:</label>
+                <input type="text" id="routerClientIP" required>
+            </div>
+            <div class="form-group">
+                <label for="listenPort">Port nasłuchiwania:</label>
+                <input type="number" id="listenPort" value="13231" required>
+            </div>
+            <button type="submit">Generuj konfigurację</button>
+        </form>
+        <div id="output" class="hidden">
+            <h2>Konfiguracja dla routera Master:</h2>
+            <pre id="configMaster"></pre>
+            <h2>Konfiguracja dla routera Client:</h2>
+            <pre id="configClient"></pre>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
