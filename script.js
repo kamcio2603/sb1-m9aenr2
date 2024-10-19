@@ -9,6 +9,20 @@ function generateKeyPair() {
   };
 }
 
+function isValidIPv4(ip) {
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipv4Regex.test(ip)) return false;
+  const octets = ip.split('.');
+  return octets.every(octet => parseInt(octet) >= 0 && parseInt(octet) <= 255);
+}
+
+function isValidSubnet(subnet) {
+  const [ip, mask] = subnet.split('/');
+  if (!isValidIPv4(ip)) return false;
+  const maskNum = parseInt(mask);
+  return !isNaN(maskNum) && maskNum >= 0 && maskNum <= 32;
+}
+
 document.getElementById('configForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -21,6 +35,24 @@ document.getElementById('configForm').addEventListener('submit', function (e) {
   const clientLANSubnet = document.getElementById('clientLANSubnet').value;
   const listenPort = document.getElementById('listenPort').value;
   const keepalive = document.getElementById('keepalive').value;
+
+  // Walidacja adresów IP i podsieci
+  if (!isValidIPv4(routerMasterIP)) {
+    alert('Nieprawidłowy adres IP routera Master');
+    return;
+  }
+  if (!isValidIPv4(routerClientIP)) {
+    alert('Nieprawidłowy adres IP routera Client');
+    return;
+  }
+  if (!isValidSubnet(routerMasterSubnet)) {
+    alert('Nieprawidłowa podsieć LAN routera Master');
+    return;
+  }
+  if (!isValidSubnet(clientLANSubnet)) {
+    alert('Nieprawidłowa podsieć LAN klienta');
+    return;
+  }
 
   // Generowanie kluczy
   const masterKeys = generateKeyPair();
