@@ -1,5 +1,5 @@
-import nacl from 'tweetnacl';
-import util from 'tweetnacl-util';
+import * as nacl from 'tweetnacl';
+import * as util from 'tweetnacl-util';
 
 function generateKeyPair() {
   const keyPair = nacl.box.keyPair();
