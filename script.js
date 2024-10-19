@@ -36,25 +36,25 @@ document.getElementById('configForm').addEventListener('submit', function (e) {
   const listenPort = document.getElementById('listenPort').value;
   const keepalive = document.getElementById('keepalive').value;
 
-  // Validation of IP addresses and subnets
+  // Walidacja adresów IP i podsieci
   if (!isValidIPv4(routerMasterIP)) {
-    alert('Invalid Master router IP address');
+    alert('Nieprawidłowy adres IP routera Master');
     return;
   }
   if (!isValidIPv4(routerClientIP)) {
-    alert('Invalid Client router IP address');
+    alert('Nieprawidłowy adres IP routera Client');
     return;
   }
   if (!isValidSubnet(routerMasterSubnet)) {
-    alert('Invalid Master router LAN subnet');
+    alert('Nieprawidłowa podsieć LAN routera Master');
     return;
   }
   if (!isValidSubnet(clientLANSubnet)) {
-    alert('Invalid Client LAN subnet');
+    alert('Nieprawidłowa podsieć LAN klienta');
     return;
   }
 
-  // Key generation
+  // Generowanie kluczy
   const masterKeys = generateKeyPair();
   const clientKeys = generateKeyPair();
 
@@ -112,7 +112,7 @@ function generateConfig(
   const isClient = !isMaster;
   const endpointAddress = isClient ? remoteFQDN : remoteIP;
 
-  let config = `# WireGuard configuration for ${localName}
+  let config = `# Konfiguracja WireGuard dla ${localName}
 /interface wireguard add listen-port=${listenPort} mtu=1420 name=${localName} private-key="${localPrivateKey}"
 `;
 
@@ -129,12 +129,12 @@ function generateConfig(
 
   if (isMaster) {
     config += `
-# Routing to client LAN network
+# Routing do sieci LAN klienta
 /ip route add dst-address=${clientLANSubnet} gateway=${remoteIP}
 `;
   } else {
     config += `
-# Routing to master LAN network
+# Routing do sieci LAN mastera
 /ip route add dst-address=${masterLANSubnet} gateway=${remoteIP}
 `;
   }
