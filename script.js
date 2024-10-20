@@ -1,28 +1,44 @@
-import * as nacl from 'tweetnacl';
-import * as util from 'tweetnacl-util';
-
-function generateKeyPair() {
-  const keyPair = nacl.box.keyPair();
-  return {
-    publicKey: util.encodeBase64(keyPair.publicKey),
-    privateKey: util.encodeBase64(keyPair.secretKey),
-  };
-}
+import nacl from 'tweetnacl';
+import util from 'tweetnacl-util';
 
 function isValidIPv4(ip) {
   const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
   if (!ipv4Regex.test(ip)) return false;
-  const octets = ip.split('.');
-  return octets.every(octet => parseInt(octet) >= 0 && parseInt(octet) <= 255);
+  return ip.split('.').every(octet => parseInt(octet) >= 0 && parseInt(octet) <= 255);
 }
 
 function isValidSubnet(subnet) {
   const [ip, mask] = subnet.split('/');
   if (!isValidIPv4(ip)) return false;
   const maskNum = parseInt(mask);
-  return !isNaN(maskNum) && maskNum >= 0 && maskNum <= 32;
+  return maskNum >= 0 && maskNum <= 32;
 }
 
+function generateKeyPair() {
+  const keyPair = nacl.box.keyPair();
+  return {
+    publicKey: util.encodeBase64(keyPair.publicKey),
+    privateKey: util.encodeBase64(keyPair.secretKey)
+  };
+}
+
+function generateConfig(name, publicKey, privateKey, address, peerName, peerPublicKey, peerAddress, listenPort, peerEndpoint, allowedIPs, sourceAllowedIPs, persistentKeepalive, isMaster) {
+  let config = '';
+
+  if (isMaster) {
+    config += `/interface/wireguard\nadd listen-port=${listenPort} name=${name} private-key="${privateKey}"\n\n`;
+    config += `/interface/wireguard/peers\nadd allowed-address=${allowedIPs} endpoint-address=${peerEndpoint} endpoint-port=${listenPort} interface=${name} public-key="${peerPublicKey}"\n\n`;
+    config += `/ip/address\nadd address=${address}/24 interface=${name}\n\n`;
+    config += `/ip/route\nadd comment="WireGuard" distance=1 dst-address=${allowedIPs} gateway=${name}\n`;
+  } else {
+    config += `/interface/wireguard\nadd name=${name} private-key="${privateKey}"\n\n`;
+    config += `/interface/wireguard/peers\nadd allowed-address=${sourceAllowedIPs} endpoint-address=${peerEndpoint} endpoint-port=${listenPort} interface=${name} persistent-keepalive=${persistentKeepalive}s public-key="${peerPublicKey}"\n\n`;
+    config += `/ip/address\nadd address=${address}/24 interface=${name}\n\n`;
+    config += `/ip/route\nadd comment="WireGuard" distance=1 dst-address=${sourceAllowedIPs} gateway=${name}\n`;
+  }
+
+  return config;
+}
 document.getElementById('configForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -36,22 +52,30 @@ document.getElementById('configForm').addEventListener('submit', function (e) {
   const listenPort = document.getElementById('listenPort').value;
   const keepalive = document.getElementById('keepalive').value;
 
+  const errorMessages = [];
   // Walidacja adresów IP i podsieci
   if (!isValidIPv4(routerMasterIP)) {
-    alert('Nieprawidłowy adres IP routera Master');
-    return;
+    errorMessages.push('Nieprawidłowy adres IP routera Master');
   }
   if (!isValidIPv4(routerClientIP)) {
-    alert('Nieprawidłowy adres IP routera Client');
-    return;
+    errorMessages.push('Nieprawidłowy adres IP routera Client');
   }
   if (!isValidSubnet(routerMasterSubnet)) {
-    alert('Nieprawidłowa podsieć LAN routera Master');
-    return;
+    errorMessages.push('Nieprawidłowa podsieć LAN routera Master');
   }
   if (!isValidSubnet(clientLANSubnet)) {
-    alert('Nieprawidłowa podsieć LAN klienta');
+    errorMessages.push('Nieprawidłowa podsieć LAN klienta');
+  }
+
+  const errorMessagesElement = document.getElementById('errorMessages');
+
+  if (errorMessages.length > 0) {
+    errorMessagesElement.innerHTML = errorMessages.map(msg => `<p>${msg}</p>`).join('');
+    errorMessagesElement.classList.add('show');
     return;
+  } else {
+    errorMessagesElement.innerHTML = '';
+    errorMessagesElement.classList.remove('show');
   }
 
   // Generowanie kluczy
@@ -93,51 +117,3 @@ document.getElementById('configForm').addEventListener('submit', function (e) {
   document.getElementById('configClient').textContent = configClient;
   document.getElementById('output').classList.remove('hidden');
 });
-
-function generateConfig(
-  localName,
-  localPublicKey,
-  localPrivateKey,
-  localIP,
-  remoteName,
-  remotePublicKey,
-  remoteIP,
-  listenPort,
-  remoteFQDN,
-  clientLANSubnet,
-  masterLANSubnet,
-  keepalive,
-  isMaster
-) {
-  const isClient = !isMaster;
-  const endpointAddress = isClient ? remoteFQDN : remoteIP;
-
-  let config = `# Konfiguracja WireGuard dla ${localName}
-/interface wireguard add listen-port=${listenPort} mtu=1420 name=${localName} private-key="${localPrivateKey}"
-`;
-
-  if (isMaster) {
-    config += `/interface wireguard peers add allowed-address=0.0.0.0/0 interface=${localName} public-key="${remotePublicKey}" name="${localName}"
-`;
-  } else {
-    config += `/interface wireguard peers add allowed-address=0.0.0.0/0 endpoint-address=${endpointAddress} endpoint-port=${listenPort} interface=${localName} public-key="${remotePublicKey}" persistent-keepalive=${keepalive}s name="${localName}"
-`;
-  }
-
-  config += `/ip address add address=${localIP}/30 interface=${localName}
-`;
-
-  if (isMaster) {
-    config += `
-# Routing do sieci LAN klienta
-/ip route add dst-address=${clientLANSubnet} gateway=${remoteIP}
-`;
-  } else {
-    config += `
-# Routing do sieci LAN mastera
-/ip route add dst-address=${masterLANSubnet} gateway=${remoteIP}
-`;
-  }
-
-  return config;
-}
