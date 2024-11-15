@@ -23,6 +23,56 @@ function isValidSubnet(subnet) {
   return !isNaN(maskNum) && maskNum >= 0 && maskNum <= 32;
 }
 
+function showErrors(errors) {
+  const errorDiv = document.getElementById('errorMessages');
+  errorDiv.innerHTML = ''; // Wyczyść poprzednie błędy
+  
+  // Usuń poprzednie podświetlenia
+  document.querySelectorAll('input').forEach(input => {
+    input.classList.remove('invalid');
+  });
+  
+  if (errors.length > 0) {
+    const errorList = document.createElement('ul');
+    errorList.className = 'error-list';
+    
+    errors.forEach(({ message, inputId }) => {
+      // Dodaj błąd do listy
+      const errorItem = document.createElement('li');
+      errorItem.textContent = message;
+      errorList.appendChild(errorItem);
+      
+      // Podświetl pole z błędem
+      const inputElement = document.getElementById(inputId);
+      if (inputElement) {
+        inputElement.classList.add('invalid');
+      }
+    });
+    
+    errorDiv.appendChild(errorList);
+    errorDiv.classList.add('show');
+    
+    // Automatycznie ukryj błędy po 5 sekundach
+    setTimeout(() => {
+      errorDiv.classList.remove('show');
+      document.querySelectorAll('input').forEach(input => {
+        input.classList.remove('invalid');
+      });
+    }, 5000);
+  }
+}
+
+// Usuń klasę invalid przy wprowadzaniu nowej wartości
+document.querySelectorAll('input').forEach(input => {
+  input.addEventListener('input', () => {
+    input.classList.remove('invalid');
+    // Jeśli nie ma już żadnych pól z błędami, ukryj komunikaty
+    if (!document.querySelector('input.invalid')) {
+      document.getElementById('errorMessages').classList.remove('show');
+    }
+  });
+});
+
 document.getElementById('configForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -36,21 +86,37 @@ document.getElementById('configForm').addEventListener('submit', function (e) {
   const listenPort = document.getElementById('listenPort').value;
   const keepalive = document.getElementById('keepalive').value;
 
-  // Walidacja adresów IP i podsieci
+  // Zbierz wszystkie błędy
+  const errors = [];
+
   if (!isValidIPv4(routerMasterIP)) {
-    alert('Nieprawidłowy adres IP routera Master');
-    return;
+    errors.push({
+      message: 'Nieprawidłowy adres IP routera Master',
+      inputId: 'routerMasterIP'
+    });
   }
   if (!isValidIPv4(routerClientIP)) {
-    alert('Nieprawidłowy adres IP routera Client');
-    return;
+    errors.push({
+      message: 'Nieprawidłowy adres IP routera Client',
+      inputId: 'routerClientIP'
+    });
   }
   if (!isValidSubnet(routerMasterSubnet)) {
-    alert('Nieprawidłowa podsieć LAN routera Master');
-    return;
+    errors.push({
+      message: 'Nieprawidłowa podsieć LAN routera Master',
+      inputId: 'routerMasterSubnet'
+    });
   }
   if (!isValidSubnet(clientLANSubnet)) {
-    alert('Nieprawidłowa podsieć LAN klienta');
+    errors.push({
+      message: 'Nieprawidłowa podsieć LAN klienta',
+      inputId: 'clientLANSubnet'
+    });
+  }
+
+  // Jeśli są błędy, pokaż je i przerwij
+  if (errors.length > 0) {
+    showErrors(errors);
     return;
   }
 
@@ -121,6 +187,15 @@ function generateConfig(
 `;
   } else {
     config += `/interface wireguard peers add allowed-address=0.0.0.0/0 endpoint-address=${endpointAddress} endpoint-port=${listenPort} interface=${localName} public-key="${remotePublicKey}" persistent-keepalive=${keepalive}s name="${localName}"
+
+# Konfiguracja firewalla dla interfejsu WireGuard
+# Zezwól na ruch przychodzący na interfejsie WireGuard (np. ping, zarządzanie)
+/ip firewall filter add chain=input action=accept in-interface=${localName} place-before=1 \\
+    comment="Zezwól na ruch przychodzący przez tunel WireGuard (ping, zarządzanie)"
+
+# Zezwól na przekazywanie ruchu z interfejsu WireGuard do sieci LAN
+/ip firewall filter add chain=forward action=accept in-interface=${localName} \\
+    comment="Zezwól na przekazywanie ruchu z tunelu WireGuard do sieci LAN"
 `;
   }
 
