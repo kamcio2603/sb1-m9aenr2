@@ -1,25 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
+:root {
+    --primary-color: #2c3e50;
+    --primary-light: #3498db;
+    --primary-dark: #2980b9;
+    --error-color: #e74c3c;
+    --background-light: #f0f2f5;
+    --background-white: #ffffff;
+    --text-color: #333;
+    --border-color: #bdc3c7;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
 body {
     font-family: 'Roboto', Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: var(--background-light);
+    color: var(--text-color);
+    transition: background-color var(--transition-speed) ease;
 }
 
 .container {
     max-width: 800px;
     margin: 2rem auto;
     padding: 2rem;
-    background-color: #ffffff;
+    background-color: var(--background-white);
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--shadow-color);
+    transition: background-color var(--transition-speed) ease;
 }
 
 h1 {
-    color: #2c3e50;
+    color: var(--primary-color);
     text-align: center;
     margin-bottom: 2rem;
     font-size: 2.5rem;
@@ -45,16 +60,16 @@ input[type="text"],
 input[type="number"] {
     width: 100%;
     padding: 0.8rem;
-    border: 1px solid #bdc3c7;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all var(--transition-speed) ease;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: var(--primary-light);
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
@@ -64,7 +79,7 @@ input[readonly] {
 }
 
 input.invalid {
-    border-color: #e74c3c;
+    border-color: var(--error-color);
     background-color: #fdf1f0;
     box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
 }
@@ -73,26 +88,28 @@ button {
     display: block;
     width: 100%;
     padding: 1rem;
-    background: #3498db;
-    color: #fff;
+    background: var(--primary-light);
+    color: var(--background-white);
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 1.1rem;
     font-weight: 500;
-    transition: background-color 0.3s ease;
+    transition: all var(--transition-speed) ease;
 }
 
 button:hover {
-    background: #2980b9;
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 #output {
     margin-top: 2rem;
-    background: #ffffff;
+    background: var(--background-white);
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .hidden {
@@ -111,7 +128,7 @@ pre {
 }
 
 .error-messages {
-    color: #e74c3c;
+    color: var(--error-color);
     background-color: #fadbd8;
     border: 1px solid #f1948a;
     border-radius: 4px;
@@ -121,7 +138,7 @@ pre {
     display: none;
     opacity: 0;
     transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 
 .error-messages.show {
@@ -145,6 +162,7 @@ pre {
 
 @media (max-width: 600px) {
     .container {
+        margin: 1rem;
         padding: 1rem;
     }
 
@@ -155,5 +173,47 @@ pre {
     input[type="text"],
     input[type="number"] {
         font-size: 16px;
+        padding: 0.7rem;
+    }
+
+    button {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+}
+
+/* Dodajemy wsparcie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-light: #1a1a1a;
+        --background-white: #2d2d2d;
+        --text-color: #ffffff;
+        --border-color: #404040;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        background-color: #333;
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+
+    input[readonly] {
+        background-color: #404040;
+    }
+
+    pre {
+        background: #333;
+        border-color: #404040;
+        color: #fff;
+    }
+}
+
+/* Dodajemy wsparcie dla preferencji redukcji ruchu */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
     }
 }
